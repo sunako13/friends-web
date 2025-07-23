@@ -55,7 +55,12 @@ map.on( "load", async () => {
 			"circle-opacity": 0.75,
 		}
 	} )
-
+    map.flyTo({
+        center: [longitude, latitude],
+        speed: 1.5,
+        zoom: 15,
+      });
+      
 	//
 
 	button.onclick = () => {
