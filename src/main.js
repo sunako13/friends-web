@@ -55,12 +55,7 @@ map.on( "load", async () => {
 			"circle-opacity": 0.75,
 		}
 	} )
-    map.flyTo({
-        center: [longitude, latitude],
-        speed: 1.5,
-        zoom: 15,
-      });
-      
+
 	//
 
 	button.onclick = () => {
@@ -86,6 +81,13 @@ map.on( "load", async () => {
 				}
 
 				map.getSource( "me" ).setData( geoJSONPoint )
+
+                map.flyTo({
+                    center: [longitude, latitude],
+                    speed: 1.5,
+                    zoom: 15,
+                  });
+                  
 				
 				locationInfo.longitude.textContent = `Lon: ${longitude.toFixed(6)}`
 				locationInfo.latitude.textContent = `Lat: ${latitude.toFixed(6)}`
