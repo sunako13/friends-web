@@ -55,6 +55,134 @@ map.on( "load", async () => {
 			"circle-opacity": 0.75,
 		}
 	} )
+    let isDrawing = false;
+let drawMode = ""; // "line" yoki "polygon"
+let points = [];
+let previewId = "preview-line";
+let finalId = "final-draw";
+
+// Line chizish tugmasi
+document.getElementById("drawLineBtn").onclick = () => {
+	drawMode = "line";
+	startDrawing();
+};
+
+// Polygon chizish tugmasi
+document.getElementById("drawPolygonBtn").onclick = () => {
+	drawMode = "polygon";
+	startDrawing();
+};
+
+// Chizishni boshlash
+function startDrawing() {
+	isDrawing = true;
+	points = [];
+
+	if (map.getLayer(previewId)) map.removeLayer(previewId);
+	if (map.getSource(previewId)) map.removeSource(previewId);
+
+	// Kursorni o‘zgartirish
+	map.getCanvas().style.cursor = "crosshair";
+}
+
+// Xaritani bosganda nuqtalarni to‘plash
+map.on("click", (e) => {
+	if (!isDrawing) return;
+
+	const { lng, lat } = e.lngLat;
+	points.push([lng, lat]);
+});
+
+// Sichqoncha harakatida preview ko‘rsatish
+map.on("mousemove", (e) => {
+	if (!isDrawing || points.length === 0) return;
+
+	const dynamicPoints = [...points, [e.lngLat.lng, e.lngLat.lat]];
+
+	let geometryType = drawMode === "polygon" ? "Polygon" : "LineString";
+	let coords = drawMode === "polygon" ? [[...dynamicPoints, dynamicPoints[0]]] : dynamicPoints;
+
+	const previewFeature = {
+		type: "Feature",
+		geometry: {
+			type: geometryType,
+			coordinates: coords
+		}
+	};
+
+	if (map.getSource(previewId)) {
+		map.getSource(previewId).setData(previewFeature);
+	} else {
+		map.addSource(previewId, {
+			type: "geojson",
+			data: previewFeature
+		});
+
+		map.addLayer({
+			id: previewId,
+			type: drawMode === "polygon" ? "fill" : "line",
+			source: previewId,
+			paint: drawMode === "polygon" ? {
+				"fill-color": "#00ffff",
+				"fill-opacity": 0.4
+			} : {
+				"line-color": "blue",
+				"line-dasharray": [2, 2],
+				"line-width": 2
+			}
+		});
+	}
+});
+
+// Enter tugmasi bosilganda yakunlash
+document.addEventListener("keydown", (e) => {
+	if (e.key === "Enter" && isDrawing && points.length > 1) {
+		isDrawing = false;
+		map.getCanvas().style.cursor = "";
+
+		let geometryType = drawMode === "polygon" ? "Polygon" : "LineString";
+		let coords = drawMode === "polygon" ? [[...points, points[0]]] : points;
+
+		const finalFeature = {
+			type: "Feature",
+			geometry: {
+				type: geometryType,
+				coordinates: coords
+			}
+		};
+
+		const sourceId = finalId + "-" + Date.now(); // unik nom
+
+		map.addSource(sourceId, {
+			type: "geojson",
+			data: finalFeature
+		});
+
+		map.addLayer({
+			id: sourceId,
+			type: drawMode === "polygon" ? "fill" : "line",
+			source: sourceId,
+			paint: drawMode === "polygon" ? {
+				"fill-color": "red",
+				"fill-opacity": 0.5
+			} : {
+				"line-color": "black",
+				"line-width": 3
+			}
+		});
+
+		// Preview chizig‘ini o‘chirish
+		if (map.getLayer(previewId)) map.removeLayer(previewId);
+		if (map.getSource(previewId)) map.removeSource(previewId);
+
+		points = [];
+	}
+});
+
+    
+    
+
+    
 
 	//
 
